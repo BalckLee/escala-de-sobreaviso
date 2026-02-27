@@ -1,0 +1,296 @@
+:root {
+  --bg-main: #0a0b10;
+  --bg-card: #14161f;
+  --bg-input: #1c1e29;
+  --primary: #4f46e5;
+  --primary-hover: #6366f1;
+  --accent: #10b981;
+  --text-main: #f8fafc;
+  --text-dim: #94a3b8;
+  --border: #2d3142;
+  --glass: rgba(20, 22, 31, 0.7);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --font: 'Outfit', sans-serif;
+}
+
+[data-theme='light'] {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --accent: #059669;
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e2e8f0;
+  --glass: rgba(255, 255, 255, 0.7);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font);
+  line-height: 1.5;
+  font-size: 1.1rem;
+  /* Aumentado de padrão */
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid-cols-12 {
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.col-span-8 {
+  grid-column: span 8;
+}
+
+.col-span-4 {
+  grid-column: span 4;
+}
+
+/* Dashboard Styles */
+.stat-card {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0.5rem 0;
+}
+
+.stat-label {
+  color: var(--text-dim);
+  font-size: 1rem;
+  /* Aumentado de 0.875rem */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Calendar Styles */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.calendar-header {
+  background: var(--bg-card);
+  padding: 1rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  /* Aumentado */
+  color: var(--text-dim);
+}
+
+.calendar-day {
+  background: var(--bg-card);
+  min-height: 100px;
+  padding: 0.75rem;
+  transition: background 0.2s;
+}
+
+.calendar-day-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 1.2rem;
+  /* Aumentado */
+  color: var(--text-dim);
+}
+
+.on-call-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.today {
+  border: 2px solid var(--primary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Input Styles */
+input,
+select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-family: var(--font);
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--primary);
+}
+
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+  }
+
+  .header-mobile {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1.5rem;
+  }
+
+  .nav-mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-mobile>div {
+    margin-left: 0 !important;
+    flex-direction: column;
+  }
+
+  .stat-card,
+  .glass-card {
+    padding: 1rem;
+  }
+
+  /* Grid dos dias da semana (reduz a fonte) */
+  .calendar-header {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* Altura mínima menor para os dias */
+  .calendar-day {
+    min-height: 80px;
+    padding: 0.25rem;
+  }
+
+  /* Mostra apenas a versão curta do dia (ex: DOM em vez de domingo se tivéssemos feito longo, mas já ajusta se o texto quebrar) */
+  .day-number {
+    font-size: 1rem;
+  }
+
+  /* Ocultar/Reduzir crachás no mobile para caber */
+  .on-call-badge {
+    padding: 0.1rem 0.2rem;
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Calendário ainda precisa ser 7 colunas, então diminuímos drasticamente a fonte */
+  .calendar-header {
+    font-size: 0.6rem;
+    padding: 0.25rem;
+  }
+
+  .day-number {
+    font-size: 0.8rem;
+  }
+}
