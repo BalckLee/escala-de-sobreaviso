@@ -121,6 +121,19 @@ h3 {
 }
 
 /* Dashboard Styles */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .stat-card {
   padding: 1.5rem;
   text-align: center;
@@ -184,6 +197,7 @@ h3 {
 
 .on-call-badge {
   background: rgba(16, 185, 129, 0.15);
+  /* Default Green for S */
   color: var(--accent);
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
@@ -192,6 +206,26 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.on-call-badge.badge-s1,
+.on-call-badge.badge-s2,
+.on-call-badge.badge-s3 {
+  background: rgba(234, 179, 8, 0.15);
+  /* Yellow */
+  color: #eab308;
+}
+
+.on-call-badge.badge-ss {
+  background: rgba(239, 68, 68, 0.15);
+  /* Red */
+  color: #ef4444;
+}
+
+.on-call-badge.badge-f {
+  background: rgba(59, 130, 246, 0.15);
+  /* Blue */
+  color: #3b82f6;
 }
 
 .today {
@@ -240,7 +274,12 @@ input:focus {
   .header-mobile {
     flex-direction: column;
     align-items: flex-start !important;
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+
+  .header-mobile>div {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .nav-mobile {
@@ -253,38 +292,57 @@ input:focus {
     flex-direction: column;
   }
 
+  .grid-cols-12 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .col-span-8,
+  .col-span-4 {
+    grid-column: span 1;
+  }
+
   .stat-card,
   .glass-card {
     padding: 1rem;
   }
 
-  /* Grid dos dias da semana (reduz a fonte) */
   .calendar-header {
     padding: 0.5rem;
     font-size: 0.8rem;
   }
 
-  /* Altura mínima menor para os dias */
   .calendar-day {
-    min-height: 80px;
+    min-height: 70px;
     padding: 0.25rem;
   }
 
-  /* Mostra apenas a versão curta do dia (ex: DOM em vez de domingo se tivéssemos feito longo, mas já ajusta se o texto quebrar) */
   .day-number {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
-  /* Ocultar/Reduzir crachás no mobile para caber */
   .on-call-badge {
     padding: 0.1rem 0.2rem;
     font-size: 0.6rem;
   }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .app-container {
+    padding: 0.5rem;
+  }
 
-  /* Calendário ainda precisa ser 7 colunas, então diminuímos drasticamente a fonte */
+  .header-mobile h1 {
+    font-size: 1.3rem !important;
+  }
+
   .calendar-header {
     font-size: 0.6rem;
     padding: 0.25rem;
@@ -292,5 +350,9 @@ input:focus {
 
   .day-number {
     font-size: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
   }
 }

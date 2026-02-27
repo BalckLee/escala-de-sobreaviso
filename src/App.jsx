@@ -43,9 +43,10 @@ const LEGENDS = {
 
 
 const INITIAL_EMPLOYEES = [
-    { id: 1, name: 'RENATO MARTINS', phone: '(11) 93393-4722' },
-    { id: 2, name: 'WALTER ALBERTO', phone: '(11) 95072-0498' },
-    { id: 3, name: 'GUILHERME ALBERTO', phone: '(11) 93256-6628' }
+    { id: 1, name: 'RENATO MARTINS', phone: '(11) 93393-4722', role: 'Supervisor de Atendimento' },
+    { id: 2, name: 'WALTER ALBERTO', phone: '(11) 95072-0498', role: 'Supervisor de Atendimento' },
+    { id: 3, name: 'GUILHERME ALBERTO', phone: '(11) 93256-6628', role: 'Coordenador de Operações' },
+    { id: 4, name: 'MARCELO PANHOCA', phone: '(11) 97400-8800', role: 'Gerente' }
 ];
 
 function App() {
@@ -60,6 +61,15 @@ function App() {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
 
+    const handleEditVacation = (emp) => {
+        const pwd = prompt(`Inserir férias para ${emp.name}.\n\nDigite a senha de administrador:`);
+        if (pwd === '@Merinode26') {
+            alert(`Acesso Liberado!\nA funcionalidade de inserir férias para ${emp.name} está em desenvolvimento no momento.`);
+        } else if (pwd !== null) {
+            alert("Senha incorreta!");
+        }
+    };
+
     // Geração Automática de Escala (7 dias seguidos + Transição na Segunda)
     const generateScale = () => {
         // Agora a escala sempre começa no domingo e termina no sábado
@@ -69,6 +79,9 @@ function App() {
         const days = eachDayOfInterval({ start, end });
 
         const newScale = {};
+
+        // Filtramos para pegar apenas as pessoas que dão plantão real. Marcelo não entra na rotação.
+        const plantonistas = employees.filter(emp => emp.role !== 'Gerente');
 
         days.forEach((day) => {
             const dateStr = format(day, 'yyyy-MM-dd');
@@ -80,10 +93,10 @@ function App() {
             // weekIndex para a pessoa que COMEÇA na segunda-feira
             // Alinhado para Walter entrar 02/03 e Renato terminar 01/03
             const weekIndex = Math.floor((diffInDays + 10) / 7);
-            const currentEmployee = employees[weekIndex % employees.length];
+            const currentEmployee = plantonistas[weekIndex % plantonistas.length];
 
             // weekIndex para a pessoa que TERMINA na segunda-feira (quem estava na semana passada)
-            const prevEmployee = employees[(weekIndex - 1 + employees.length) % employees.length];
+            const prevEmployee = plantonistas[(weekIndex - 1 + plantonistas.length) % plantonistas.length];
 
             const assignments = [];
 
@@ -205,60 +218,78 @@ function App() {
     return (
         <div className="app-container">
             <header className="header-mobile" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', alignItems: 'center' }}>
-                <div>
-                    <h1 style={{ fontSize: '2rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Zap size={32} /> SISO
-                    </h1>
-                    <p style={{ color: 'var(--text-dim)' }}>Sistema Inteligente de Sobreaviso</p>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <button className="btn btn-secondary" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>Anterior</button>
-                    <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '700', minWidth: '150px', textAlign: 'center' }}>
-                        {format(currentDate, 'MMMM yyyy', { locale: ptBR }).toUpperCase()}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                    <div>
+                        <h1 style={{ fontSize: '2rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                            <Zap size={32} /> Escala de Sobreaviso
+                        </h1>
+                        <p style={{ color: 'var(--text-dim)', marginTop: '0.25rem' }}>Gestão e Acompanhamento</p>
                     </div>
-                    <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Próximo</button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ padding: '0.75rem' }}
+                            onClick={() => setActiveTab('dashboard')}
+                            title="Dashboard"
+                        >
+                            <CalendarIcon size={20} />
+                        </button>
+                        <button
+                            className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ padding: '0.75rem' }}
+                            onClick={() => setActiveTab('config')}
+                            title="Equipe & Regras"
+                        >
+                            <Users size={20} />
+                        </button>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <button className="btn btn-secondary" style={{ padding: '0.75rem' }} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
+                        {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                    </button>
+                    <button className="btn btn-secondary" style={{ padding: '0.75rem' }} onClick={exportToExcel} title="Exportar Excel">
+                        <Download size={18} />
+                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '0.5rem' }}>
+                        <button className="btn btn-secondary" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>Anterior</button>
+                        <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '700', minWidth: '150px', textAlign: 'center' }}>
+                            {format(currentDate, 'MMMM yyyy', { locale: ptBR }).toUpperCase()}
+                        </div>
+                        <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Próximo</button>
+                    </div>
                 </div>
             </header>
 
-            <nav className="nav-mobile" style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-                <button
-                    className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setActiveTab('dashboard')}
-                >
-                    <CalendarIcon size={18} /> Dashboard
-                </button>
-                <button
-                    className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setActiveTab('config')}
-                >
-                    <Users size={18} /> Equipe & Regras
-                </button>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem' }}>
-                    <button className="btn btn-secondary" onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}>
-                        {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                        {theme === 'dark' ? 'Modo Escuro' : 'Modo Claro'}
-                    </button>
-                    <button className="btn btn-secondary" onClick={exportToExcel}>
-                        <Download size={18} /> Exportar Excel
-                    </button>
-                </div>
-            </nav>
+
 
             <main style={{ flex: 1 }}>
                 {activeTab === 'dashboard' && (
-                    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    <div className="animate-fade dashboard-layout">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--accent)' }}>
-                                <div className="stat-label">Responsável Hoje</div>
+                                <div className="stat-label">Sobreaviso Hoje</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                     {onCallToday.length > 0 ? onCallToday.map((p, idx) => (
                                         <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                                             <div className="stat-value" style={{ color: 'var(--accent)', fontSize: '1.2rem', margin: 0 }}>
                                                 {p.employee}
                                             </div>
-                                            <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
-                                                <span className="on-call-badge" style={{ fontSize: '0.8rem', padding: '0.2rem 0.4rem' }}>{p.type}</span>
-                                                {LEGENDS[p.type]}
+                                            <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
+                                                    {LEGENDS[p.type].replace(' das ', ' das:\\n').split('\\n').map((line, i) => <div key={i}>{line}</div>)}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
+                                                        <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                            <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
+                                                            <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                                </svg>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )) : (
@@ -270,16 +301,28 @@ function App() {
                             </div>
 
                             <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--primary)' }}>
-                                <div className="stat-label">Responsável Amanhã</div>
+                                <div className="stat-label">Sobreaviso Amanhã</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                     {onCallTomorrow.length > 0 ? onCallTomorrow.map((p, idx) => (
                                         <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                                             <div className="stat-value" style={{ color: 'var(--primary)', fontSize: '1.2rem', margin: 0 }}>
                                                 {p.employee}
                                             </div>
-                                            <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
-                                                <span className="on-call-badge" style={{ fontSize: '0.8rem', padding: '0.2rem 0.4rem' }}>{p.type}</span>
-                                                {LEGENDS[p.type]}
+                                            <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
+                                                    {LEGENDS[p.type].replace(' das ', ' das:\\n').split('\\n').map((line, i) => <div key={i}>{line}</div>)}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
+                                                        <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                            <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
+                                                            <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                                </svg>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )) : (
@@ -294,9 +337,17 @@ function App() {
                                 <div className="stat-label" style={{ marginBottom: '1rem', textAlign: 'center' }}>Contatos da Equipe</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                     {employees.map((emp) => (
-                                        <div key={emp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                                            <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{emp.name}</span>
-                                            <span style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>{emp.phone}</span>
+                                        <div key={emp.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                                            <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>{emp.name}</span>
+                                            <span style={{ color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>{emp.role}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+                                                <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{emp.phone}</a>
+                                                <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                    </svg>
+                                                </a>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -309,48 +360,52 @@ function App() {
                                     <CalendarIcon size={24} style={{ color: 'var(--primary)' }} /> Visão Mensal
                                 </h2>
                             </div>
-                            <div className="calendar-grid">
-                                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
-                                    <div key={d} className="calendar-header">{d}</div>
-                                ))}
+                            <div style={{ overflowX: 'auto', paddingBottom: '1rem' }}>
+                                <div className="calendar-grid" style={{ minWidth: '700px' }}>
+                                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+                                        <div key={d} className="calendar-header">{d}</div>
+                                    ))}
 
-                                {eachDayOfInterval({
-                                    start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
-                                    end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
-                                }).map(day => {
-                                    const dateStr = format(day, 'yyyy-MM-dd');
-                                    const s = scale[dateStr] || [];
-                                    const active = isToday(day);
-                                    const isOtherMonth = format(day, 'MM') !== format(currentDate, 'MM');
+                                    {eachDayOfInterval({
+                                        start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
+                                        end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
+                                    }).map(day => {
+                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                        const s = scale[dateStr] || [];
+                                        const active = isToday(day);
+                                        const isOtherMonth = format(day, 'MM') !== format(currentDate, 'MM');
 
-                                    return (
-                                        <div
-                                            key={dateStr}
-                                            className={`calendar-day ${active ? 'today' : ''}`}
-                                            onClick={() => setSelectedDay({ date: day, assignments: s })}
-                                            style={{ cursor: 'pointer', overflow: 'hidden', opacity: isOtherMonth ? 0.3 : 1 }}
-                                        >
-                                            <div className="calendar-day-header">
-                                                <span className="day-number">{format(day, 'd')}</span>
+                                        return (
+                                            <div
+                                                key={dateStr}
+                                                className={`calendar-day ${active ? 'today' : ''}`}
+                                                onClick={() => setSelectedDay({ date: day, assignments: s })}
+                                                style={{ cursor: 'pointer', overflow: 'hidden', opacity: isOtherMonth ? 0.3 : 1 }}
+                                            >
+                                                <div className="calendar-day-header">
+                                                    <span className="day-number">{format(day, 'd')}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    {s.map((p, idx) => (
+                                                        <div key={idx} style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span className={`on-call-badge badge-${p.type.toLowerCase()}`} style={{ fontSize: '0.7rem', opacity: 0.9, padding: '2px 4px', borderRadius: '4px' }}>
+                                                                {p.type}
+                                                            </span>
+                                                            {p.employee.split(' ')[0]}
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                {s.map((p, idx) => (
-                                                    <div key={idx} style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <span style={{ fontSize: '0.7rem', opacity: 0.9, background: 'var(--bg-input)', padding: '2px 4px', borderRadius: '4px' }}>{p.type}</span>
-                                                        {p.employee.split(' ')[0]}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             {/* Legendas */}
                             <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
                                 {Object.entries(LEGENDS).map(([code, desc]) => (
                                     <div key={code} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                        <span className="on-call-badge" style={{ minWidth: '40px', justifyContent: 'center' }}>{code}</span>
+                                        <span className={`on-call-badge badge-${code.toLowerCase()}`} style={{ minWidth: '40px', justifyContent: 'center' }}>{code}</span>
                                         <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{desc}</span>
                                     </div>
                                 ))}
@@ -375,10 +430,20 @@ function App() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {selectedDay.assignments && selectedDay.assignments.length > 0 ? selectedDay.assignments.map((p, idx) => (
                                     <div key={idx} style={{ borderBottom: idx < selectedDay.assignments.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: '1rem' }}>
-                                        <div style={{ fontSize: '1.2rem', fontWeight: '700' }}>{p.employee}</div>
-                                        <div className="on-call-badge" style={{ margin: '0.5rem auto', padding: '0.5rem 1rem', fontSize: '1rem' }}>
-                                            {p.type}
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                            <span className={`on-call-badge badge-${p.type.toLowerCase()}`} style={{ fontSize: '1rem', padding: '0.3rem 0.6rem' }}>{p.type}</span>
+                                            <div style={{ fontSize: '1.2rem', fontWeight: '700' }}>{p.employee}</div>
                                         </div>
+                                        {employees.find(emp => emp.name === p.employee) && (
+                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                                                <a href={`tel:${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{employees.find(emp => emp.name === p.employee).phone}</a>
+                                                <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        )}
                                         <div style={{ background: 'var(--bg-input)', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                             <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Disponibilidade</div>
                                             <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{LEGENDS[p.type]}</div>
@@ -401,12 +466,20 @@ function App() {
                             </h2>
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {employees.map(emp => (
-                                    <div key={emp.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)' }}>
-                                        <div>
+                                    <div key={emp.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', gap: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: '700' }}>{emp.name}</div>
-                                            <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>{emp.phone}</div>
+                                            <div style={{ color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase', marginTop: '0.25rem' }}>{emp.role}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                                <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{emp.phone}</a>
+                                                <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                    </svg>
+                                                </a>
+                                            </div>
                                         </div>
-                                        <button className="btn btn-secondary">Editar</button>
+                                        <button className="btn btn-secondary" onClick={() => handleEditVacation(emp)}>Editar</button>
                                     </div>
                                 ))}
                                 <button className="btn btn-secondary" style={{ borderStyle: 'dashed', justifyContent: 'center' }}>+ Adicionar Membro</button>
@@ -421,7 +494,6 @@ function App() {
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-dim)', fontSize: '0.875rem' }}>Frequência de Troca</label>
                                     <select style={{ width: '100%', cursor: 'pointer' }}>
-                                        <option>Diária (1 pessoa/dia)</option>
                                         <option>Semanal (1 pessoa/semana)</option>
                                     </select>
                                 </div>
