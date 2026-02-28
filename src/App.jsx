@@ -225,9 +225,9 @@ function App() {
         <div className="app-container">
             <header style={{ marginBottom: '2.5rem' }}>
                 {/* Visual Header Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                        <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', minWidth: 0, flex: '1 1 auto' }}>
+                        <div style={{ minWidth: 0 }}>
                             <h1 className="app-title">
                                 <Zap className="zap-icon" /> Escala de Sobreaviso
                             </h1>
@@ -241,7 +241,7 @@ function App() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                         {/* Desktop-only Month Navigation */}
                         <div className="desktop-only" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <button className="btn btn-secondary" onClick={() => {
@@ -258,19 +258,19 @@ function App() {
                         </div>
 
                         {/* Actions (Theme/Export/Menu/Tabs) */}
-                        <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            <div className="mobile-only" style={{ display: 'flex', gap: '0.4rem' }}>
-                                <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('dashboard')}><CalendarIcon size={20} /></button>
-                                <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('config')}><Settings size={20} /></button>
-                                <button className="btn btn-secondary" style={{ padding: '0.7rem' }} onClick={() => setShowContactsDrawer(true)} title="Contatos da Equipe">
-                                    <MoreVertical size={20} />
+                        <div className="header-action-buttons" style={{ display: 'flex', gap: '0.3rem' }}>
+                            <div className="mobile-only" style={{ display: 'flex', gap: '0.3rem' }}>
+                                <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('dashboard')}><CalendarIcon size={18} /></button>
+                                <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('config')}><Settings size={18} /></button>
+                                <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setShowContactsDrawer(true)} title="Contatos da Equipe">
+                                    <MoreVertical size={18} />
                                 </button>
                             </div>
-                            <button className="btn btn-secondary" style={{ padding: '0.7rem' }} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
-                                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                            <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
+                                {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                             </button>
-                            <button className="btn btn-secondary" style={{ padding: '0.7rem' }} onClick={exportToExcel} title="Exportar Excel">
-                                <Download size={18} />
+                            <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={exportToExcel} title="Exportar Excel">
+                                <Download size={16} />
                             </button>
                         </div>
                     </div>
@@ -479,8 +479,8 @@ function App() {
 
             {
                 selectedDay && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }} onClick={() => setSelectedDay(null)}>
-                        <div className="glass-card animate-fade" style={{ maxWidth: '400px', width: '90%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)', padding: '1rem' }} onClick={() => setSelectedDay(null)}>
+                        <div className="glass-card animate-fade" style={{ maxWidth: '400px', width: '100%', textAlign: 'center', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
                             <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>{format(selectedDay.date, "dd 'de' MMMM", { locale: ptBR })}</h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {selectedDay.assignments && selectedDay.assignments.length > 0 ? selectedDay.assignments.map((p, idx) => (
