@@ -45,10 +45,10 @@ const LEGENDS = {
 };
 
 const INITIAL_EMPLOYEES = [
-    { id: 1, name: 'RENATO MARTINS', phone: '(11) 93393-4722', role: 'Supervisor de Atendimento' },
-    { id: 2, name: 'WALTER ALBERTO', phone: '(11) 95072-0498', role: 'Supervisor de Atendimento' },
-    { id: 3, name: 'GUILHERME ALBERTO', phone: '(11) 93256-6628', role: 'Coordenador de Operações' },
-    { id: 4, name: 'MARCELO PANHOCA', phone: '(11) 97400-8800', role: 'Gerente' }
+    { id: 1, name: 'RENATO MARTINS', phone: '(11) 93393-4722', role: 'Supervisor de Atendimento', vacations: [] },
+    { id: 2, name: 'WALTER ALBERTO', phone: '(11) 95072-0498', role: 'Supervisor de Atendimento', vacations: [] },
+    { id: 3, name: 'GUILHERME ALBERTO', phone: '(11) 93256-6628', role: 'Coordenador de Operações', vacations: [] },
+    { id: 4, name: 'MARCELO PANHOCA', phone: '(11) 97400-8800', role: 'Gerente', vacations: [] }
 ];
 
 function App() {
@@ -60,6 +60,7 @@ function App() {
     const [theme, setTheme] = useState('dark');
     const [showMonthSelector, setShowMonthSelector] = useState(false);
     const [showContactsDrawer, setShowContactsDrawer] = useState(false);
+    const [editingVacationEmpId, setEditingVacationEmpId] = useState(null);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -93,10 +94,37 @@ function App() {
     const handleEditVacation = (emp) => {
         const pwd = prompt(`Inserir férias para ${emp.name}.\n\nDigite a senha de administrador:`);
         if (pwd === '@Merinode26') {
-            alert(`Acesso Liberado!\nA funcionalidade de inserir férias para ${emp.name} está em desenvolvimento no momento.`);
+            setEditingVacationEmpId(emp.id);
         } else if (pwd !== null) {
             alert("Senha incorreta!");
         }
+    };
+
+    const addVacation = (empId, start, end) => {
+        setEmployees(prev => prev.map(emp => {
+            if (emp.id === empId) {
+                const vacs = emp.vacations || [];
+                return { ...emp, vacations: [...vacs, { start, end }] };
+            }
+            return emp;
+        }));
+    };
+
+    const removeVacation = (empId, index) => {
+        setEmployees(prev => prev.map(emp => {
+            if (emp.id === empId) {
+                const vacs = [...(emp.vacations || [])];
+                vacs.splice(index, 1);
+                return { ...emp, vacations: vacs };
+            }
+            return emp;
+        }));
+    };
+
+    const checkIsVacation = (emp, dayDate) => {
+        if (!emp.vacations || emp.vacations.length === 0) return false;
+        const checkStr = format(dayDate, 'yyyy-MM-dd');
+        return emp.vacations.some(v => checkStr >= v.start && checkStr <= v.end);
     };
 
     const getAssignmentsForDate = (day, plantonistas) => {
@@ -105,15 +133,47 @@ function App() {
         const baseDate = new Date(2026, 0, 1);
         const diffInDays = Math.round((normalizedDay.getTime() - baseDate.getTime()) / (1000 * 3600 * 24));
         const weekIndex = Math.floor((diffInDays + 10) / 7);
-        const currentEmployee = plantonistas[weekIndex % plantonistas.length];
-        const prevEmployee = plantonistas[(weekIndex - 1 + plantonistas.length) % plantonistas.length];
+
+        // Helper para encontrar quem deveria estar de plantão em uma dada semana,
+        // pulando quem estiver de férias naquela semana e avançando a fila.
+        const getRosterIdxForWeek = (w) => {
+            let rIdx = 1;
+            for (let i = 1; i <= w; i++) {
+                const weekStartDate = addDays(baseDate, Math.max(0, 7 * i - 10));
+                let attempts = 0;
+                // Se o funcionário atual está de férias na semana i, pula para o próximo
+                while (checkIsVacation(plantonistas[rIdx % plantonistas.length], weekStartDate) && attempts < plantonistas.length) {
+                    rIdx++;
+                    attempts++;
+                }
+                if (i === w) return rIdx;
+                rIdx++; // Avança para a próxima semana
+            }
+            return rIdx;
+        };
+
+        const currentRosterIdx = getRosterIdxForWeek(weekIndex);
+        const currentEmployee = plantonistas[currentRosterIdx % plantonistas.length];
+
+        // Determina o plantonista da semana anterior (para o S1 de segunda-feira)
+        const prevWeekIdx = weekIndex - 1;
+        const prevRosterIdx = prevWeekIdx >= 1 ? getRosterIdxForWeek(prevWeekIdx) : 1;
+        const prevEmployee = plantonistas[prevRosterIdx % plantonistas.length];
+
         const assignments = [];
         const isHoliday = hd.isHoliday(normalizedDay);
 
-        if (dayOfWeek === 1) {
+        // Adiciona quem está de férias como informação visual
+        plantonistas.forEach(emp => {
+            if (checkIsVacation(emp, normalizedDay)) {
+                assignments.push({ employee: emp.name, type: 'F' });
+            }
+        });
+
+        if (dayOfWeek === 1) { // Segunda-feira
             assignments.push({ employee: prevEmployee.name, type: 'S1' });
             assignments.push({ employee: currentEmployee.name, type: 'S' });
-        } else if (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) {
+        } else if (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) { // FDS ou Feriado
             assignments.push({ employee: currentEmployee.name, type: 'SS' });
         } else {
             assignments.push({ employee: currentEmployee.name, type: 'S' });
@@ -193,8 +253,15 @@ function App() {
 
             scaleDays.forEach(day => {
                 const dayAssignments = getAssignmentsForDate(day, originalPlantonistas);
-                const assignment = dayAssignments.find(a => a.employee === emp.name);
-                row.push(assignment ? assignment.type : '');
+                const assignmentNotF = dayAssignments.find(a => a.employee === emp.name && a.type !== 'F');
+                const assignmentF = dayAssignments.find(a => a.employee === emp.name && a.type === 'F');
+                let typeStr = '';
+                if (assignmentNotF) {
+                    typeStr = assignmentNotF.type;
+                } else if (assignmentF) {
+                    typeStr = assignmentF.type;
+                }
+                row.push(typeStr);
             });
             dataRows.push(row);
         });
@@ -544,6 +611,62 @@ function App() {
                         </div>
                     </div>
                 )
+            }
+
+            {
+                editingVacationEmpId && (() => {
+                    const emp = employees.find(e => e.id === editingVacationEmpId);
+                    if (!emp) return null;
+                    return (
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(6px)' }} onClick={() => setEditingVacationEmpId(null)}>
+                            <div className="glass-card animate-fade" style={{ maxWidth: '500px', width: '95%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                    <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sun size={24} /> Férias - {emp.name.split(' ')[0]}</h2>
+                                    <button className="btn btn-secondary" onClick={() => setEditingVacationEmpId(null)} style={{ padding: '0.5rem' }}><X size={20} /></button>
+                                </div>
+                                <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {(emp.vacations || []).map((v, i) => (
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                            <span style={{ fontWeight: '600' }}>{format(new Date(`${v.start}T00:00:00`), 'dd/MM/yyyy')} até {format(new Date(`${v.end}T00:00:00`), 'dd/MM/yyyy')}</span>
+                                            <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', color: '#ff4444', borderColor: '#ff444455' }} onClick={() => removeVacation(emp.id, i)}>Remover</button>
+                                        </div>
+                                    ))}
+                                    {(!emp.vacations || emp.vacations.length === 0) && (
+                                        <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '1.5rem', border: '1px dashed var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>Nenhuma férias cadastrada para este membro.</div>
+                                    )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', flexDirection: 'column', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                                    <label style={{ fontSize: '0.85rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05rem', fontWeight: 'bold' }}>Adicionar Novo Período</label>
+                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Início</span>
+                                            <input type="date" id={`vacStart-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Fim</span>
+                                            <input type="date" id={`vacEnd-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
+                                        </div>
+                                        <button className="btn btn-primary" style={{ padding: '0.6rem 1rem', placeSelf: 'flex-end', height: 'max-content' }} onClick={() => {
+                                            const start = document.getElementById(`vacStart-${emp.id}`).value;
+                                            const end = document.getElementById(`vacEnd-${emp.id}`).value;
+                                            if (start && end) {
+                                                if (start > end) {
+                                                    alert('A data de início deve ser anterior à data de fim.');
+                                                    return;
+                                                }
+                                                addVacation(emp.id, start, end);
+                                                document.getElementById(`vacStart-${emp.id}`).value = '';
+                                                document.getElementById(`vacEnd-${emp.id}`).value = '';
+                                            } else {
+                                                alert('Preencha as duas datas.');
+                                            }
+                                        }}>Adicionar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()
             }
 
             {/* Side Strip Trigger */}
