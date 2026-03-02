@@ -62,6 +62,22 @@ function App() {
     const [showContactsDrawer, setShowContactsDrawer] = useState(false);
     const [editingVacationEmpId, setEditingVacationEmpId] = useState(null);
 
+    const getTypeColor = (type) => {
+        switch (type.toUpperCase()) {
+            case 'S1':
+            case 'S2':
+            case 'S3':
+                return '#eab308'; // Amarelo
+            case 'SS':
+                return '#ef4444'; // Vermelho
+            case 'F':
+                return '#3b82f6'; // Azul
+            case 'S':
+            default:
+                return 'var(--accent)'; // Verde
+        }
+    };
+
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
@@ -376,7 +392,7 @@ function App() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                         {onCallToday.length > 0 ? onCallToday.map((p, idx) => (
                                             <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                                <div className="stat-value" style={{ color: 'var(--accent)', fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
+                                                <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
                                                 <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
                                                         {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
@@ -407,7 +423,7 @@ function App() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                         {onCallTomorrow.length > 0 ? onCallTomorrow.map((p, idx) => (
                                             <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                                <div className="stat-value" style={{ color: 'var(--primary)', fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
+                                                <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
                                                 <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
                                                         {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
@@ -439,16 +455,36 @@ function App() {
                             {/* Mobile Mini Cards next to calendar */}
                             {activeTab === 'dashboard' && (
                                 <div className="mobile-only" style={{ gap: '0.5rem', width: '100%', marginBottom: '1.5rem', justifyContent: 'center' }}>
-                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--accent)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1 }} onClick={() => setSelectedDay({ date: new Date(), assignments: onCallToday })}>
+                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--accent)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: new Date(), assignments: onCallToday })}>
                                         <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Hoje</div>
-                                        <div style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1rem' }}>
-                                            {onCallToday.length > 0 ? onCallToday[0].employee.split(' ')[0] : 'Ninguém'}
+                                        <div style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {onCallToday.filter(a => a.type !== 'F').length > 0 ? (
+                                                onCallToday.filter(a => a.type !== 'F').map((p, i) => (
+                                                    <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallToday.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
+                                                        {p.employee.split(' ')[0]}
+                                                    </div>
+                                                ))
+                                            ) : onCallToday.some(a => a.type === 'F') ? (
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
+                                            ) : (
+                                                'Ninguém'
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--primary)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1 }} onClick={() => setSelectedDay({ date: addDays(new Date(), 1), assignments: onCallTomorrow })}>
+                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--primary)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: addDays(new Date(), 1), assignments: onCallTomorrow })}>
                                         <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Amanhã</div>
-                                        <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1rem' }}>
-                                            {onCallTomorrow.length > 0 ? onCallTomorrow[0].employee.split(' ')[0] : 'Ninguém'}
+                                        <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {onCallTomorrow.filter(a => a.type !== 'F').length > 0 ? (
+                                                onCallTomorrow.filter(a => a.type !== 'F').map((p, i) => (
+                                                    <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallTomorrow.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
+                                                        {p.employee.split(' ')[0]}
+                                                    </div>
+                                                ))
+                                            ) : onCallTomorrow.some(a => a.type === 'F') ? (
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
+                                            ) : (
+                                                'Ninguém'
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -711,7 +747,7 @@ function App() {
             <footer style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
                 &copy; 2026 Amerinode - Gestão de Escalas de Sobreaviso
             </footer>
-        </div >
+        </div>
     );
 }
 
