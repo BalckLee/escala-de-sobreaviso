@@ -585,3 +585,254 @@ input:focus {
     font-size: 1.2rem;
   }
 }
+
+/* Splash Screen & App Transition */
+.splash-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #050510;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.logo-3d-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  animation: logoEntrance 1.2s ease-out forwards;
+}
+
+/* === Amerinode Globe with Arcs === */
+.logo-globe {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  animation: float 5s ease-in-out infinite;
+}
+
+.logo-arc {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 28px;
+  border-bottom: 4px solid;
+  border-radius: 0 0 50% 50%;
+  opacity: 0;
+  animation: arcReveal 0.8s ease-out forwards;
+}
+
+/* 7 arcs stacked, blue at top transitioning to red at bottom */
+.logo-arc:nth-child(1) {
+  top: 18px;
+  width: 55%;
+  border-color: #1e40af;
+  animation-delay: 0.1s;
+}
+
+.logo-arc:nth-child(2) {
+  top: 40px;
+  width: 72%;
+  border-color: #2563eb;
+  animation-delay: 0.2s;
+}
+
+.logo-arc:nth-child(3) {
+  top: 62px;
+  width: 85%;
+  border-color: #3b82f6;
+  animation-delay: 0.3s;
+}
+
+.logo-arc:nth-child(4) {
+  top: 84px;
+  width: 95%;
+  border-color: #6b7280;
+  animation-delay: 0.4s;
+}
+
+.logo-arc:nth-child(5) {
+  top: 106px;
+  width: 100%;
+  border-color: #ef4444;
+  animation-delay: 0.5s;
+}
+
+.logo-arc:nth-child(6) {
+  top: 128px;
+  width: 90%;
+  border-color: #dc2626;
+  animation-delay: 0.6s;
+}
+
+.logo-arc:nth-child(7) {
+  top: 150px;
+  width: 75%;
+  border-color: #b91c1c;
+  animation-delay: 0.7s;
+}
+
+/* Glow behind the globe */
+.logo-globe::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(239, 68, 68, 0.1) 50%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes arcReveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleX(0.3);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Text "amerinode" */
+.logo-text {
+  font-size: 2.8rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  animation: textFadeIn 1s ease-out 0.8s both;
+}
+
+.logo-text .text-blue {
+  color: #3b82f6;
+}
+
+.logo-text .text-red {
+  color: #ef4444;
+}
+
+@keyframes textFadeIn {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.8em;
+    filter: blur(8px);
+  }
+
+  100% {
+    opacity: 1;
+    letter-spacing: 0.35em;
+    filter: blur(0);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes logoEntrance {
+  0% {
+    transform: scale(0.6) translateY(60px);
+    opacity: 0;
+    filter: blur(15px);
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Exit animations */
+.splash-exit {
+  animation: splashContainerFade 1.5s ease forwards;
+  pointer-events: none;
+}
+
+.splash-exit .logo-3d-container {
+  animation: logoExit 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes logoExit {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(25px);
+  }
+}
+
+@keyframes splashContainerFade {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.app-hidden {
+  opacity: 0;
+  visibility: hidden;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-ready {
+  animation: appEntrance 1.5s ease forwards;
+  will-change: opacity, filter;
+}
+
+@keyframes appEntrance {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}

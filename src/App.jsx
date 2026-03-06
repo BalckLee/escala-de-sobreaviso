@@ -61,6 +61,16 @@ function App() {
     const [showMonthSelector, setShowMonthSelector] = useState(false);
     const [showContactsDrawer, setShowContactsDrawer] = useState(false);
     const [editingVacationEmpId, setEditingVacationEmpId] = useState(null);
+    const [showSplash, setShowSplash] = useState(true);
+    const [isExiting, setIsExiting] = useState(false);
+
+    useEffect(() => {
+        const timerOut = setTimeout(() => {
+            setIsExiting(true);
+            setTimeout(() => setShowSplash(false), 1500); // 1.5s is the fade transition duration
+        }, 3000); // 3 seconds splash screen active time
+        return () => clearTimeout(timerOut);
+    }, []);
 
     const getTypeColor = (type) => {
         switch (type.toUpperCase()) {
@@ -305,449 +315,469 @@ function App() {
     };
 
     return (
-        <div className="app-container">
-            <header style={{ marginBottom: '2.5rem' }}>
-                {/* Visual Header Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', minWidth: 0, flex: '1 1 auto' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <h1 className="app-title">
-                                <Zap className="zap-icon" /> Escala de Sobreaviso
-                            </h1>
-                            <p className="app-subtitle">Backoffice e Atendimento</p>
+        <>
+            {showSplash && (
+                <div className={`splash-container ${isExiting ? 'splash-exit' : ''}`}>
+                    <div className="logo-3d-container">
+                        <div className="logo-globe">
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                            <div className="logo-arc"></div>
+                        </div>
+                        <div className="logo-text">
+                            <span className="text-blue">AMERI</span><span className="text-red">NODE</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div className={`app-container ${!showSplash || isExiting ? 'app-ready' : 'app-hidden'}`}>
+                <header style={{ marginBottom: '2.5rem' }}>
+                    {/* Visual Header Row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', minWidth: 0, flex: '1 1 auto' }}>
+                            <div style={{ minWidth: 0 }}>
+                                <h1 className="app-title">
+                                    <Zap className="zap-icon" /> Escala de Sobreaviso
+                                </h1>
+                                <p className="app-subtitle">Backoffice e Atendimento</p>
+                            </div>
+
+                            {/* Desktop Tabs */}
+                            <div className="desktop-only" style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('dashboard')} title="Dashboard"><CalendarIcon size={20} /></button>
+                                <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('config')} title="Equipe & Regras"><Settings size={20} /></button>
+                            </div>
                         </div>
 
-                        {/* Desktop Tabs */}
-                        <div className="desktop-only" style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('dashboard')} title="Dashboard"><CalendarIcon size={20} /></button>
-                            <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.7rem' }} onClick={() => handleTabChange('config')} title="Equipe & Regras"><Settings size={20} /></button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                            {/* Desktop-only Month Navigation */}
+                            <div className="desktop-only" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <button className="btn btn-secondary" onClick={() => {
+                                    const prevMonth = subMonths(currentDate, 1);
+                                    if (prevMonth.getFullYear() >= 2026) setCurrentDate(prevMonth);
+                                }} disabled={currentDate.getFullYear() === 2026 && currentDate.getMonth() === 0}>Anterior</button>
+                                <div
+                                    onClick={() => setShowMonthSelector(true)}
+                                    style={{ padding: '0.75rem 1.5rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '800', minWidth: '180px', textAlign: 'center', color: 'var(--text-main)', border: '1px solid var(--border)', textTransform: 'uppercase', cursor: 'pointer' }}
+                                >
+                                    {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+                                </div>
+                                <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Próximo</button>
+                            </div>
+
+                            {/* Actions (Theme/Export/Menu/Tabs) */}
+                            <div className="header-action-buttons" style={{ display: 'flex', gap: '0.3rem' }}>
+                                <div className="mobile-only" style={{ display: 'flex', gap: '0.3rem' }}>
+                                    <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('dashboard')}><CalendarIcon size={18} /></button>
+                                    <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('config')}><Settings size={18} /></button>
+                                    <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setShowContactsDrawer(true)} title="Contatos da Equipe">
+                                        <MoreVertical size={18} />
+                                    </button>
+                                </div>
+                                <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
+                                    {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                                </button>
+                                <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={exportToExcel} title="Exportar Excel">
+                                    <Download size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                        {/* Desktop-only Month Navigation */}
-                        <div className="desktop-only" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {/* Mobile-only Month Selection (Separate Row) */}
+                    <div className="mobile-only" style={{ width: '100%', marginTop: '1rem', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                             <button className="btn btn-secondary" onClick={() => {
                                 const prevMonth = subMonths(currentDate, 1);
                                 if (prevMonth.getFullYear() >= 2026) setCurrentDate(prevMonth);
-                            }} disabled={currentDate.getFullYear() === 2026 && currentDate.getMonth() === 0}>Anterior</button>
+                            }} disabled={currentDate.getFullYear() === 2026 && currentDate.getMonth() === 0} style={{ padding: '0.7rem' }}>
+                                <ChevronLeft size={20} />
+                            </button>
                             <div
                                 onClick={() => setShowMonthSelector(true)}
-                                style={{ padding: '0.75rem 1.5rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '800', minWidth: '180px', textAlign: 'center', color: 'var(--text-main)', border: '1px solid var(--border)', textTransform: 'uppercase', cursor: 'pointer' }}
+                                style={{ flex: 1, padding: '0.75rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', textAlign: 'center', color: 'var(--primary)', border: '1px solid var(--border)', cursor: 'pointer', textTransform: 'uppercase' }}
                             >
                                 {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
                             </div>
-                            <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Próximo</button>
-                        </div>
-
-                        {/* Actions (Theme/Export/Menu/Tabs) */}
-                        <div className="header-action-buttons" style={{ display: 'flex', gap: '0.3rem' }}>
-                            <div className="mobile-only" style={{ display: 'flex', gap: '0.3rem' }}>
-                                <button className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('dashboard')}><CalendarIcon size={18} /></button>
-                                <button className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`} style={{ padding: '0.5rem' }} onClick={() => handleTabChange('config')}><Settings size={18} /></button>
-                                <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setShowContactsDrawer(true)} title="Contatos da Equipe">
-                                    <MoreVertical size={18} />
-                                </button>
-                            </div>
-                            <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
-                                {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-                            </button>
-                            <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={exportToExcel} title="Exportar Excel">
-                                <Download size={16} />
+                            <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))} style={{ padding: '0.7rem' }}>
+                                <ChevronRight size={20} />
                             </button>
                         </div>
+
                     </div>
-                </div>
+                </header>
 
-                {/* Mobile-only Month Selection (Separate Row) */}
-                <div className="mobile-only" style={{ width: '100%', marginTop: '1rem', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-                        <button className="btn btn-secondary" onClick={() => {
-                            const prevMonth = subMonths(currentDate, 1);
-                            if (prevMonth.getFullYear() >= 2026) setCurrentDate(prevMonth);
-                        }} disabled={currentDate.getFullYear() === 2026 && currentDate.getMonth() === 0} style={{ padding: '0.7rem' }}>
-                            <ChevronLeft size={20} />
-                        </button>
-                        <div
-                            onClick={() => setShowMonthSelector(true)}
-                            style={{ flex: 1, padding: '0.75rem', background: 'var(--bg-input)', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', textAlign: 'center', color: 'var(--primary)', border: '1px solid var(--border)', cursor: 'pointer', textTransform: 'uppercase' }}
-                        >
-                            {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
-                        </div>
-                        <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 1))} style={{ padding: '0.7rem' }}>
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-
-                </div>
-            </header>
-
-            <main style={{ flex: 1 }}>
-                {activeTab === 'dashboard' && (
-                    <div className="animate-fade dashboard-layout">
-                        <div className="on-call-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                            <div className="desktop-only" style={{ flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
-                                <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--accent)', width: '100%' }}>
-                                    <div className="stat-label">Sobreaviso Hoje</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                        {onCallToday.length > 0 ? onCallToday.map((p, idx) => (
-                                            <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                                <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
-                                                <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
-                                                        {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
-                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
-                                                            <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                                <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
-                                                                <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
-                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                                                    </svg>
-                                                                </a>
+                <main style={{ flex: 1 }}>
+                    {activeTab === 'dashboard' && (
+                        <div className="animate-fade dashboard-layout">
+                            <div className="on-call-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <div className="desktop-only" style={{ flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+                                    <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--accent)', width: '100%' }}>
+                                        <div className="stat-label">Sobreaviso Hoje</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                            {onCallToday.length > 0 ? onCallToday.map((p, idx) => (
+                                                <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                                    <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
+                                                    <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
+                                                            {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
+                                                                <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                    <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
+                                                                    <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )) : (
-                                            <div style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                                <Clock size={16} /> Sem plantão ativo
-                                            </div>
-                                        )}
+                                            )) : (
+                                                <div style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                                    <Clock size={16} /> Sem plantão ativo
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--primary)', width: '100%' }}>
-                                    <div className="stat-label">Sobreaviso Amanhã</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                        {onCallTomorrow.length > 0 ? onCallTomorrow.map((p, idx) => (
-                                            <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                                <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
-                                                <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
-                                                        {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
-                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
-                                                            <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                                <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
-                                                                <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
-                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                                                    </svg>
-                                                                </a>
+                                    <div className="glass-card stat-card" style={{ borderTop: '4px solid var(--primary)', width: '100%' }}>
+                                        <div className="stat-label">Sobreaviso Amanhã</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                            {onCallTomorrow.length > 0 ? onCallTomorrow.map((p, idx) => (
+                                                <div key={idx} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                                    <div className="stat-value" style={{ color: getTypeColor(p.type), fontSize: '1.2rem', margin: 0 }}>{p.employee}</div>
+                                                    <div style={{ color: 'var(--text-dim)', fontSize: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem 0' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', fontSize: '1rem', lineHeight: '1.4' }}>
+                                                            {LEGENDS[p.type].replace(' das ', ' das:\n').split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.75rem', gap: '0.25rem' }}>
+                                                                <span style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>Contato:</span>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                    <a href={`tel:${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '1rem', textDecoration: 'none', fontWeight: 'bold' }}>{employees.find(emp => emp.name === p.employee)?.phone}</a>
+                                                                    <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee)?.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )) : (
-                                            <div style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                                <Clock size={16} /> Sem plantão ativo
-                                            </div>
-                                        )}
+                                            )) : (
+                                                <div style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                                    <Clock size={16} /> Sem plantão ativo
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="glass-card calendar-section">
-                            {/* Mobile Mini Cards next to calendar */}
-                            {activeTab === 'dashboard' && (
-                                <div className="mobile-only" style={{ gap: '0.5rem', width: '100%', marginBottom: '1.5rem', justifyContent: 'center' }}>
-                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--accent)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: new Date(), assignments: onCallToday })}>
-                                        <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Hoje</div>
-                                        <div style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                            {onCallToday.filter(a => a.type !== 'F').length > 0 ? (
-                                                onCallToday.filter(a => a.type !== 'F').map((p, i) => (
-                                                    <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallToday.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
-                                                        {p.employee.split(' ')[0]}
-                                                    </div>
-                                                ))
-                                            ) : onCallToday.some(a => a.type === 'F') ? (
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
-                                            ) : (
-                                                'Ninguém'
-                                            )}
+                            <div className="glass-card calendar-section">
+                                {/* Mobile Mini Cards next to calendar */}
+                                {activeTab === 'dashboard' && (
+                                    <div className="mobile-only" style={{ gap: '0.5rem', width: '100%', marginBottom: '1.5rem', justifyContent: 'center' }}>
+                                        <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--accent)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: new Date(), assignments: onCallToday })}>
+                                            <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Hoje</div>
+                                            <div style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                {onCallToday.filter(a => a.type !== 'F').length > 0 ? (
+                                                    onCallToday.filter(a => a.type !== 'F').map((p, i) => (
+                                                        <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallToday.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
+                                                            {p.employee.split(' ')[0]}
+                                                        </div>
+                                                    ))
+                                                ) : onCallToday.some(a => a.type === 'F') ? (
+                                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
+                                                ) : (
+                                                    'Ninguém'
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--primary)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: addDays(new Date(), 1), assignments: onCallTomorrow })}>
+                                            <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Amanhã</div>
+                                            <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                {onCallTomorrow.filter(a => a.type !== 'F').length > 0 ? (
+                                                    onCallTomorrow.filter(a => a.type !== 'F').map((p, i) => (
+                                                        <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallTomorrow.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
+                                                            {p.employee.split(' ')[0]}
+                                                        </div>
+                                                    ))
+                                                ) : onCallTomorrow.some(a => a.type === 'F') ? (
+                                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
+                                                ) : (
+                                                    'Ninguém'
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="glass-card stat-card" style={{ borderTop: '3px solid var(--primary)', padding: '0.6rem', cursor: 'pointer', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px' }} onClick={() => setSelectedDay({ date: addDays(new Date(), 1), assignments: onCallTomorrow })}>
-                                        <div className="stat-label" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>Sobreaviso Amanhã</div>
-                                        <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                            {onCallTomorrow.filter(a => a.type !== 'F').length > 0 ? (
-                                                onCallTomorrow.filter(a => a.type !== 'F').map((p, i) => (
-                                                    <div key={i} style={{ color: getTypeColor(p.type), fontSize: onCallTomorrow.filter(a => a.type !== 'F').length > 1 ? '0.85rem' : '1rem' }}>
-                                                        {p.employee.split(' ')[0]}
+                                )}
+                                <div style={{ overflowX: 'auto', paddingBottom: '1rem', overflowY: 'hidden' }}>
+                                    <div className="calendar-grid">
+                                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+                                            <div key={d} className="calendar-header">{d}</div>
+                                        ))}
+                                        {eachDayOfInterval({
+                                            start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
+                                            end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
+                                        }).map(day => {
+                                            const dateStr = format(day, 'yyyy-MM-dd');
+                                            const s = scale[dateStr] || [];
+                                            const active = isToday(day);
+                                            const isOtherMonth = format(day, 'MM') !== format(currentDate, 'MM');
+                                            return (
+                                                <div key={dateStr} className={`calendar-day ${active ? 'today' : ''}`} onClick={() => setSelectedDay({ date: day, assignments: s })} style={{ cursor: 'pointer', overflow: 'hidden', opacity: isOtherMonth ? 0.3 : 1 }}>
+                                                    <div className="calendar-day-header"><span className="day-number">{format(day, 'd')}</span></div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        {s.map((p, idx) => (
+                                                            <div key={idx} className="calendar-assignment">
+                                                                <span className={`on-call-badge badge-${p.type.toLowerCase()}`}>{p.type}</span>
+                                                                <span className="assignment-name">{p.employee.split(' ')[0]}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                ))
-                                            ) : onCallTomorrow.some(a => a.type === 'F') ? (
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', opacity: 0.7 }}>Somente Férias</div>
-                                            ) : (
-                                                'Ninguém'
-                                            )}
-                                        </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                            )}
-                            <div style={{ overflowX: 'auto', paddingBottom: '1rem', overflowY: 'hidden' }}>
-                                <div className="calendar-grid">
-                                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
-                                        <div key={d} className="calendar-header">{d}</div>
+                                <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                                    {Object.entries(LEGENDS).map(([code, desc]) => (
+                                        <div key={code} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                            <span className={`on-call-badge badge-${code.toLowerCase()}`} style={{ minWidth: '40px', justifyContent: 'center' }}>{code}</span>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{desc}</span>
+                                        </div>
                                     ))}
-                                    {eachDayOfInterval({
-                                        start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
-                                        end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
-                                    }).map(day => {
-                                        const dateStr = format(day, 'yyyy-MM-dd');
-                                        const s = scale[dateStr] || [];
-                                        const active = isToday(day);
-                                        const isOtherMonth = format(day, 'MM') !== format(currentDate, 'MM');
-                                        return (
-                                            <div key={dateStr} className={`calendar-day ${active ? 'today' : ''}`} onClick={() => setSelectedDay({ date: day, assignments: s })} style={{ cursor: 'pointer', overflow: 'hidden', opacity: isOtherMonth ? 0.3 : 1 }}>
-                                                <div className="calendar-day-header"><span className="day-number">{format(day, 'd')}</span></div>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                    {s.map((p, idx) => (
-                                                        <div key={idx} className="calendar-assignment">
-                                                            <span className={`on-call-badge badge-${p.type.toLowerCase()}`}>{p.type}</span>
-                                                            <span className="assignment-name">{p.employee.split(' ')[0]}</span>
-                                                        </div>
-                                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'config' && (
+                        <div className="grid grid-cols-12 animate-fade">
+                            <div className="col-span-8 glass-card">
+                                <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings /> Gestão da Equipe</h2>
+                                <div style={{ display: 'grid', gap: '1rem' }}>
+                                    {employees.map(emp => (
+                                        <div key={emp.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', gap: '1rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: '700' }}>{emp.name}</div>
+                                                <div style={{ color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase', marginTop: '0.25rem' }}>{emp.role}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                                    <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{emp.phone}</a>
+                                                    <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
+                                                    </a>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
+                                            <button className="btn btn-secondary" onClick={() => handleEditVacation(emp)}>Editar</button>
+                                        </div>
+                                    ))}
+                                    <button className="btn btn-secondary" style={{ borderStyle: 'dashed', justifyContent: 'center' }}>+ Adicionar Membro</button>
                                 </div>
                             </div>
-                            <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                                {Object.entries(LEGENDS).map(([code, desc]) => (
-                                    <div key={code} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                        <span className={`on-call-badge badge-${code.toLowerCase()}`} style={{ minWidth: '40px', justifyContent: 'center' }}>{code}</span>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{desc}</span>
+
+                            <div className="col-span-4 glass-card">
+                                <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings /> Regras de Rodízio</h2>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-dim)', fontSize: '0.875rem' }}>Frequência de Troca</label>
+                                        <select style={{ width: '100%', cursor: 'pointer' }}><option>Semanal (1 pessoa/semana)</option></select>
                                     </div>
-                                ))}
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-dim)', fontSize: '0.875rem' }}>Ordem de Início</label>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            {employees.map((emp, i) => (
+                                                <div key={emp.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-main)', padding: '0.75rem', borderRadius: '10px' }}>
+                                                    <span style={{ background: 'var(--primary)', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>{i + 1}</span>
+                                                    <span style={{ fontSize: '0.9rem' }}>{emp.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-primary" onClick={generateScale} style={{ marginTop: '1rem' }}><ArrowRightLeft size={18} /> Re-gerar Escala</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </main>
 
-                {activeTab === 'config' && (
-                    <div className="grid grid-cols-12 animate-fade">
-                        <div className="col-span-8 glass-card">
-                            <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings /> Gestão da Equipe</h2>
-                            <div style={{ display: 'grid', gap: '1rem' }}>
-                                {employees.map(emp => (
-                                    <div key={emp.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', gap: '1rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: '700' }}>{emp.name}</div>
-                                            <div style={{ color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase', marginTop: '0.25rem' }}>{emp.role}</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                                <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{emp.phone}</a>
-                                                <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
-                                                </a>
+                {
+                    selectedDay && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)', padding: '1rem' }} onClick={() => setSelectedDay(null)}>
+                            <div className="glass-card animate-fade" style={{ maxWidth: '400px', width: '100%', textAlign: 'center', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                                <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>{format(selectedDay.date, "dd 'de' MMMM", { locale: ptBR })}</h2>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    {selectedDay.assignments && selectedDay.assignments.length > 0 ? selectedDay.assignments.map((p, idx) => (
+                                        <div key={idx} style={{ borderBottom: idx < selectedDay.assignments.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: '1rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                                <span className={`on-call-badge badge-${p.type.toLowerCase()}`} style={{ fontSize: '1rem', padding: '0.3rem 0.6rem' }}>{p.type}</span>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: '700' }}>{p.employee}</div>
+                                            </div>
+                                            {employees.find(emp => emp.name === p.employee) && (
+                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                                                    <a href={`tel:${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{employees.find(emp => emp.name === p.employee).phone}</a>
+                                                    <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <div style={{ background: 'var(--bg-input)', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                                <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Disponibilidade</div>
+                                                <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{LEGENDS[p.type]}</div>
                                             </div>
                                         </div>
-                                        <button className="btn btn-secondary" onClick={() => handleEditVacation(emp)}>Editar</button>
-                                    </div>
-                                ))}
-                                <button className="btn btn-secondary" style={{ borderStyle: 'dashed', justifyContent: 'center' }}>+ Adicionar Membro</button>
+                                    )) : <p>Ninguém escalado para este dia.</p>}
+                                    <button className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }} onClick={() => setSelectedDay(null)}>Fechar</button>
+                                </div>
                             </div>
                         </div>
+                    )
+                }
 
-                        <div className="col-span-4 glass-card">
-                            <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings /> Regras de Rodízio</h2>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-dim)', fontSize: '0.875rem' }}>Frequência de Troca</label>
-                                    <select style={{ width: '100%', cursor: 'pointer' }}><option>Semanal (1 pessoa/semana)</option></select>
+                {
+                    showMonthSelector && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(6px)' }} onClick={() => setShowMonthSelector(false)}>
+                            <div className="glass-card animate-fade" style={{ maxWidth: '500px', width: '95%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                    <h2 style={{ color: 'var(--primary)', margin: 0 }}>Selecionar Mês</h2>
+                                    <button className="btn btn-secondary" onClick={() => setShowMonthSelector(false)} style={{ padding: '0.5rem' }}><X size={20} /></button>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-dim)', fontSize: '0.875rem' }}>Ordem de Início</label>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        {employees.map((emp, i) => (
-                                            <div key={emp.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-main)', padding: '0.75rem', borderRadius: '10px' }}>
-                                                <span style={{ background: 'var(--primary)', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>{i + 1}</span>
-                                                <span style={{ fontSize: '0.9rem' }}>{emp.name}</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                                    {Array.from({ length: 12 }).map((_, i) => (
+                                        <button
+                                            key={i}
+                                            className={`btn ${currentDate.getMonth() === i ? 'btn-primary' : 'btn-secondary'}`}
+                                            style={{ padding: '1rem', textTransform: 'capitalize' }}
+                                            onClick={() => {
+                                                setCurrentDate(new Date(currentDate.getFullYear(), i, 1));
+                                                setShowMonthSelector(false);
+                                            }}
+                                        >
+                                            {format(new Date(2026, i, 1), 'MMMM', { locale: ptBR })}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        const prevYear = subMonths(currentDate, 12);
+                                        if (prevYear.getFullYear() >= 2026) setCurrentDate(prevYear);
+                                    }} disabled={currentDate.getFullYear() <= 2026} title="Ano Anterior"><ChevronLeft size={20} /></button>
+                                    <span style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)' }}>{currentDate.getFullYear()}</span>
+                                    <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 12))} title="Próximo Ano"><ChevronRight size={20} /></button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {
+                    editingVacationEmpId && (() => {
+                        const emp = employees.find(e => e.id === editingVacationEmpId);
+                        if (!emp) return null;
+                        return (
+                            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(6px)' }} onClick={() => setEditingVacationEmpId(null)}>
+                                <div className="glass-card animate-fade" style={{ maxWidth: '500px', width: '95%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                        <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sun size={24} /> Férias - {emp.name.split(' ')[0]}</h2>
+                                        <button className="btn btn-secondary" onClick={() => setEditingVacationEmpId(null)} style={{ padding: '0.5rem' }}><X size={20} /></button>
+                                    </div>
+                                    <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {(emp.vacations || []).map((v, i) => (
+                                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                                <span style={{ fontWeight: '600' }}>{format(new Date(`${v.start}T00:00:00`), 'dd/MM/yyyy')} até {format(new Date(`${v.end}T00:00:00`), 'dd/MM/yyyy')}</span>
+                                                <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', color: '#ff4444', borderColor: '#ff444455' }} onClick={() => removeVacation(emp.id, i)}>Remover</button>
                                             </div>
                                         ))}
+                                        {(!emp.vacations || emp.vacations.length === 0) && (
+                                            <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '1.5rem', border: '1px dashed var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>Nenhuma férias cadastrada para este membro.</div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', flexDirection: 'column', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                                        <label style={{ fontSize: '0.85rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05rem', fontWeight: 'bold' }}>Adicionar Novo Período</label>
+                                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Início</span>
+                                                <input type="date" id={`vacStart-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Fim</span>
+                                                <input type="date" id={`vacEnd-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
+                                            </div>
+                                            <button className="btn btn-primary" style={{ padding: '0.6rem 1rem', placeSelf: 'flex-end', height: 'max-content' }} onClick={() => {
+                                                const start = document.getElementById(`vacStart-${emp.id}`).value;
+                                                const end = document.getElementById(`vacEnd-${emp.id}`).value;
+                                                if (start && end) {
+                                                    if (start > end) {
+                                                        alert('A data de início deve ser anterior à data de fim.');
+                                                        return;
+                                                    }
+                                                    addVacation(emp.id, start, end);
+                                                    document.getElementById(`vacStart-${emp.id}`).value = '';
+                                                    document.getElementById(`vacEnd-${emp.id}`).value = '';
+                                                } else {
+                                                    alert('Preencha as duas datas.');
+                                                }
+                                            }}>Adicionar</button>
+                                        </div>
                                     </div>
                                 </div>
-                                <button className="btn btn-primary" onClick={generateScale} style={{ marginTop: '1rem' }}><ArrowRightLeft size={18} /> Re-gerar Escala</button>
                             </div>
-                        </div>
-                    </div>
-                )}
-            </main>
+                        );
+                    })()
+                }
 
-            {
-                selectedDay && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)', padding: '1rem' }} onClick={() => setSelectedDay(null)}>
-                        <div className="glass-card animate-fade" style={{ maxWidth: '400px', width: '100%', textAlign: 'center', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-                            <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>{format(selectedDay.date, "dd 'de' MMMM", { locale: ptBR })}</h2>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {selectedDay.assignments && selectedDay.assignments.length > 0 ? selectedDay.assignments.map((p, idx) => (
-                                    <div key={idx} style={{ borderBottom: idx < selectedDay.assignments.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                            <span className={`on-call-badge badge-${p.type.toLowerCase()}`} style={{ fontSize: '1rem', padding: '0.3rem 0.6rem' }}>{p.type}</span>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: '700' }}>{p.employee}</div>
-                                        </div>
-                                        {employees.find(emp => emp.name === p.employee) && (
-                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-                                                <a href={`tel:${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} style={{ color: 'var(--text-dim)', fontSize: '0.9rem', textDecoration: 'none' }}>{employees.find(emp => emp.name === p.employee).phone}</a>
-                                                <a href={`https://wa.me/55${employees.find(emp => emp.name === p.employee).phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#25D366' }} title="WhatsApp">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
+                {/* Side Strip Trigger */}
+                <div className="side-strip desktop-only" onClick={() => setShowContactsDrawer(true)}>
+                    <Users size={18} color="var(--primary)" />
+                    <div className="side-strip-text">Contatos da Equipe</div>
+                </div>
+
+                {
+                    showContactsDrawer && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'flex-start', zIndex: 1500, backdropFilter: 'blur(8px)' }} onClick={() => setShowContactsDrawer(false)}>
+                            <div className="animate-fade" style={{ width: 'min(450px, 95%)', height: '100%', background: 'var(--bg-main)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+                                    <button className="btn btn-secondary" onClick={() => setShowContactsDrawer(false)} style={{ padding: '0.4rem', borderRadius: '50%' }}><X size={20} /></button>
+                                </div>
+
+                                <h2 style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '1.2rem', letterSpacing: '0.1rem', marginBottom: '1.5rem', fontWeight: '500' }}>
+                                    CONTATOS DA EQUIPE
+                                </h2>
+
+                                <div style={{ flex: 1, overflowY: 'auto' }}>
+                                    {employees.map(emp => (
+                                        <div key={emp.id} className="team-contact-card">
+                                            <div className="team-contact-name">{emp.name}</div>
+                                            <div className="team-contact-role">{emp.role}</div>
+                                            <div className="team-contact-info">
+                                                <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} className="team-contact-phone" style={{ color: 'var(--text-dim)' }}>{emp.phone}</a>
+                                                <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366' }}>
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                                    </svg>
                                                 </a>
                                             </div>
-                                        )}
-                                        <div style={{ background: 'var(--bg-input)', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                            <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Disponibilidade</div>
-                                            <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{LEGENDS[p.type]}</div>
-                                        </div>
-                                    </div>
-                                )) : <p>Ninguém escalado para este dia.</p>}
-                                <button className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }} onClick={() => setSelectedDay(null)}>Fechar</button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {
-                showMonthSelector && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(6px)' }} onClick={() => setShowMonthSelector(false)}>
-                        <div className="glass-card animate-fade" style={{ maxWidth: '500px', width: '95%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                <h2 style={{ color: 'var(--primary)', margin: 0 }}>Selecionar Mês</h2>
-                                <button className="btn btn-secondary" onClick={() => setShowMonthSelector(false)} style={{ padding: '0.5rem' }}><X size={20} /></button>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                                {Array.from({ length: 12 }).map((_, i) => (
-                                    <button
-                                        key={i}
-                                        className={`btn ${currentDate.getMonth() === i ? 'btn-primary' : 'btn-secondary'}`}
-                                        style={{ padding: '1rem', textTransform: 'capitalize' }}
-                                        onClick={() => {
-                                            setCurrentDate(new Date(currentDate.getFullYear(), i, 1));
-                                            setShowMonthSelector(false);
-                                        }}
-                                    >
-                                        {format(new Date(2026, i, 1), 'MMMM', { locale: ptBR })}
-                                    </button>
-                                ))}
-                            </div>
-                            <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                                <button className="btn btn-secondary" onClick={() => {
-                                    const prevYear = subMonths(currentDate, 12);
-                                    if (prevYear.getFullYear() >= 2026) setCurrentDate(prevYear);
-                                }} disabled={currentDate.getFullYear() <= 2026} title="Ano Anterior"><ChevronLeft size={20} /></button>
-                                <span style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)' }}>{currentDate.getFullYear()}</span>
-                                <button className="btn btn-secondary" onClick={() => setCurrentDate(addMonths(currentDate, 12))} title="Próximo Ano"><ChevronRight size={20} /></button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {
-                editingVacationEmpId && (() => {
-                    const emp = employees.find(e => e.id === editingVacationEmpId);
-                    if (!emp) return null;
-                    return (
-                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(6px)' }} onClick={() => setEditingVacationEmpId(null)}>
-                            <div className="glass-card animate-fade" style={{ maxWidth: '500px', width: '95%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                    <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sun size={24} /> Férias - {emp.name.split(' ')[0]}</h2>
-                                    <button className="btn btn-secondary" onClick={() => setEditingVacationEmpId(null)} style={{ padding: '0.5rem' }}><X size={20} /></button>
-                                </div>
-                                <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    {(emp.vacations || []).map((v, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                            <span style={{ fontWeight: '600' }}>{format(new Date(`${v.start}T00:00:00`), 'dd/MM/yyyy')} até {format(new Date(`${v.end}T00:00:00`), 'dd/MM/yyyy')}</span>
-                                            <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', color: '#ff4444', borderColor: '#ff444455' }} onClick={() => removeVacation(emp.id, i)}>Remover</button>
                                         </div>
                                     ))}
-                                    {(!emp.vacations || emp.vacations.length === 0) && (
-                                        <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '1.5rem', border: '1px dashed var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>Nenhuma férias cadastrada para este membro.</div>
-                                    )}
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', flexDirection: 'column', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                                    <label style={{ fontSize: '0.85rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05rem', fontWeight: 'bold' }}>Adicionar Novo Período</label>
-                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Início</span>
-                                            <input type="date" id={`vacStart-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '0.2rem' }}>Fim</span>
-                                            <input type="date" id={`vacEnd-${emp.id}`} className="form-input" style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border)' }} />
-                                        </div>
-                                        <button className="btn btn-primary" style={{ padding: '0.6rem 1rem', placeSelf: 'flex-end', height: 'max-content' }} onClick={() => {
-                                            const start = document.getElementById(`vacStart-${emp.id}`).value;
-                                            const end = document.getElementById(`vacEnd-${emp.id}`).value;
-                                            if (start && end) {
-                                                if (start > end) {
-                                                    alert('A data de início deve ser anterior à data de fim.');
-                                                    return;
-                                                }
-                                                addVacation(emp.id, start, end);
-                                                document.getElementById(`vacStart-${emp.id}`).value = '';
-                                                document.getElementById(`vacEnd-${emp.id}`).value = '';
-                                            } else {
-                                                alert('Preencha as duas datas.');
-                                            }
-                                        }}>Adicionar</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                    );
-                })()
-            }
+                    )
+                }
 
-            {/* Side Strip Trigger */}
-            <div className="side-strip desktop-only" onClick={() => setShowContactsDrawer(true)}>
-                <Users size={18} color="var(--primary)" />
-                <div className="side-strip-text">Contatos da Equipe</div>
+                <footer style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
+                    &copy; 2026 Amerinode - Gestão de Escalas de Sobreaviso
+                </footer>
             </div>
-
-            {
-                showContactsDrawer && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'flex-start', zIndex: 1500, backdropFilter: 'blur(8px)' }} onClick={() => setShowContactsDrawer(false)}>
-                        <div className="animate-fade" style={{ width: 'min(450px, 95%)', height: '100%', background: 'var(--bg-main)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-                                <button className="btn btn-secondary" onClick={() => setShowContactsDrawer(false)} style={{ padding: '0.4rem', borderRadius: '50%' }}><X size={20} /></button>
-                            </div>
-
-                            <h2 style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '1.2rem', letterSpacing: '0.1rem', marginBottom: '1.5rem', fontWeight: '500' }}>
-                                CONTATOS DA EQUIPE
-                            </h2>
-
-                            <div style={{ flex: 1, overflowY: 'auto' }}>
-                                {employees.map(emp => (
-                                    <div key={emp.id} className="team-contact-card">
-                                        <div className="team-contact-name">{emp.name}</div>
-                                        <div className="team-contact-role">{emp.role}</div>
-                                        <div className="team-contact-info">
-                                            <a href={`tel:${emp.phone.replace(/[^0-9]/g, '')}`} className="team-contact-phone" style={{ color: 'var(--text-dim)' }}>{emp.phone}</a>
-                                            <a href={`https://wa.me/55${emp.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366' }}>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                                </svg>
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            <footer style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
-                &copy; 2026 Amerinode - Gestão de Escalas de Sobreaviso
-            </footer>
-        </div>
+        </>
     );
 }
 
